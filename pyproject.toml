@@ -10,4 +10,5 @@ dependencies = [
     "polars>=0.20.0",
     "plotly>=5.18.0",
     "pyzmq>=27.1.0",
+    "statsmodels>=0.14.6",
 ]
