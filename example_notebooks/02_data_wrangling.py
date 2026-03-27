@@ -4,49 +4,6 @@ __generated_with = "0.20.4"
 app = marimo.App(width="medium")
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    # Data Wrangling with Polars 🐻‍❄️
-
-    **Welcome!** Learn to load, explore, and transform data with Polars.
-
-    **What you'll learn:**
-
-    - Loading data (CSV, JSON, Parquet)
-    - Exploring DataFrames
-    - Filtering and selecting data
-    - Creating new columns
-    - Grouping and aggregation
-    - Joining datasets
-
-    **Estimated time:** 60 minutes
-
-    ---
-    """)
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ## 1. Loading Data
-    """)
-    return
-
-
-@app.cell
-def _():
-    import polars as pl
-
-    # Load CSV file
-    students = pl.read_csv("../data/raw/students.csv")
-
-    print("✓ Loaded students.csv")
-    print(f"Shape: {students.shape[0]} rows × {students.shape[1]} columns")
-    return pl, students
-
-
 @app.cell
 def _(students):
     # View first few rows

@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.19.6"
+__generated_with = "0.20.4"
 app = marimo.App(width="medium")
 
 
@@ -35,7 +35,7 @@ def _():
     from datetime import datetime
     import marimo as mo
 
-    return (mo,)
+    return mo, pl
 
 
 @app.cell(hide_code=True)
@@ -50,21 +50,28 @@ def _(mo):
 def _():
     # TODO: Load the students.csv file using Polars
     # The file is at: ../data/raw/students.csv
-
-    students = None  # Replace with pl.read_csv(...)
+    import polars as pl
+    students = pl.read_csv("../data/raw/students.csv")
+    # Replace with pl.read_csv(...)
 
     # TODO: Display the first 10 rows
-    return
+    students.head(10)
+    return pl, students
 
 
 @app.cell
-def _():
+def _(students):
     # TODO: Display basic information about the students dataset
     # - How many rows and columns?
     # - What are the column names?
     # - What are the data types?
 
     # Hint: Use students.shape, students.columns, students.dtypes, or students.describe()
+    print(f"Number of rows: {students.shape[0]},  Number of columns:{students.shape[1]}")
+    # print(f"Number of columns: {students.shape[1]}")
+    print(f"Column names: {students.columns}")
+    print(f"\nData types:\n{students.dtypes}")
+
     return
 
 
@@ -77,20 +84,26 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(pl, students):
     # TODO: Filter to find students who scored above 85 on their test
 
-    high_scorers = None  # Use students.filter(...)
+    high_scorers = students.filter(
+        pl.col("test_score") > 85
+    )  # Use students.filter(...)
 
     print(f"Number of high scorers: {len(high_scorers) if high_scorers is not None else 0}")
     return
 
 
 @app.cell
-def _():
+def _(pl, students):
     # TODO: Filter to find students in grade_level 10 with attendance_rate > 90%
 
-    grade_10_good_attendance = None  # Use multiple conditions with &
+    grade_10_good_attendance = students.filter(
+        (pl.col("grade_level") == 10) & 
+        (pl.col("attendance_rate") > 90)
+    )
+    grade_10_good_attendance
     return
 
 
@@ -103,15 +116,15 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(students):
     # TODO: Select only the name, grade_level, and test_score columns
-
-    subset = None  # Use students.select(...)
+    subset = students.select(["name", "grade_level","test_score"])  # Use students.select(...)
+    subset.head(3)
     return
 
 
 @app.cell
-def _():
+def _(pl, students):
     # TODO: Create a new column "performance_category" that categorizes students:
     # - "Excellent" if test_score >= 90
     # - "Good" if test_score >= 75
@@ -120,7 +133,16 @@ def _():
 
     # Hint: Use pl.when().then().otherwise() chains
 
-    students_categorized = None
+    students_categorized = students.with_columns(
+        pl.when(pl.col("test_score") >= 90)
+        .then(pl.lit("Excellent"))
+        .when(pl.col("test_score") >= 75)
+        .then(pl.lit("Good"))
+        .when(pl.col("test_score") < 75)
+        .then(pl.lit("Needs Improvement"))
+        .otherwise(pl.lit("Not null")).alias("performance_category")   
+    )
+    students_categorized.select(["name", "test_score","performance_category"]).head(3)
     return
 
 
@@ -133,11 +155,12 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(pl):
     # TODO: Load the sales.json file
     # The file is at: ../data/raw/sales.json
 
-    sales = None  # Replace with pl.read_json(...)
+    sales = pl.read_json("../data/raw/sales.json")  # Replace with pl.read_json(...)
+    sales.head(3)
     return
 
 
@@ -163,7 +186,6 @@ def _():
     # Sort by total sales descending
 
     category_sales = None  # Use group_by() and agg()
-
     return
 
 
@@ -172,7 +194,6 @@ def _():
     # TODO: Find the average transaction amount by payment_method
 
     avg_by_payment = None
-
     return
 
 
@@ -182,7 +203,6 @@ def _():
     # Also calculate the total revenue per region
 
     region_summary = None  # Group by region, count and sum
-
     return
 
 
