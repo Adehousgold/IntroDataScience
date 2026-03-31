@@ -161,13 +161,16 @@ def _(pl):
 
     sales = pl.read_json("../data/raw/sales.json")  # Replace with pl.read_json(...)
     sales.head(3)
-    return
+    return (sales,)
 
 
 @app.cell
-def _():
+def _(pl, sales):
     # TODO: Display basic info about the sales dataset
     # How many transactions? What's the date range?
+    print(f"Number of transactions: {sales.shape[0]}")
+    date_range = sales.select([pl.col("date").min().alias("min_date"), pl.col("date").max().alias("max_date")])
+    print(f"Date range: from {date_range['min_date'][0]} to {date_range['max_date'][0]}")
     return
 
 
@@ -180,29 +183,44 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(pl, sales):
     # TODO: Calculate total sales by product_category
     # Sum up the total_amount for each category
     # Sort by total sales descending
 
-    category_sales = None  # Use group_by() and agg()
+    category_sales = (
+    	sales
+    	.group_by("product_category")
+    	.agg(pl.col("total_amount").sum().alias("total_sales"))
+    	.sort("total_sales", descending=True)
+    )
+    category_sales.head()
     return
 
 
 @app.cell
-def _():
+def _(pl, sales):
     # TODO: Find the average transaction amount by payment_method
 
-    avg_by_payment = None
+    # ensure sales is loaded (if this cell runs before the sales load cell)
+
+    avg_by_payment = sales.group_by("payment_method").agg(
+    	pl.col("total_amount").mean().alias("avg_amount")
+    )
+    avg_by_payment
     return
 
 
 @app.cell
-def _():
+def _(pl, sales):
     # TODO: Count how many transactions each region had
     # Also calculate the total revenue per region
 
-    region_summary = None  # Group by region, count and sum
+    region_summary = sales.group_by("region").agg([
+    	pl.len().alias("transaction_count"),
+    	pl.col("total_amount").sum().alias("total_revenue")
+    ])
+    region_summary
     return
 
 
@@ -215,20 +233,30 @@ def _(mo):
 
 
 @app.cell
-def _():
+def _(pl, sales):
     # TODO: Convert the date column to datetime type
     # Then extract the month and create a new column "month"
 
-    sales_with_month = None  # Use with_columns() and pl.col().str.to_date()
-    return
+    sales_with_month = sales.with_columns(
+        pl.col("date").str.to_date() # Update 'date' column type first
+    ).with_columns(
+        pl.col("date").dt.month().alias("month") # Extract month from the now-Date column
+    )
+
+    return (sales_with_month,)
 
 
 @app.cell
-def _():
+def _(pl, sales_with_month):
     # TODO: Calculate total sales by month
     # Show which month had the highest revenue
-
-    monthly_sales = None
+    monthly_sales = (
+    	sales_with_month
+    	.group_by("month")
+    	.agg(pl.col("total_amount").sum().alias("total_sales"))
+    	.sort("total_sales", descending=True)
+    )
+    monthly_sales
     return
 
 
